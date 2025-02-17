@@ -14,9 +14,23 @@ import { inspect } from "node:util";
 import type { IEndpointMeta } from "@/server/api/endpoints.js";
 import { getIpHash } from "@/misc/get-ip-hash.js";
 import { limiter } from "@/server/api/limiter.js";
+import { redisClient } from "@/db/redis.js";
 
 export async function proxyMedia(ctx: Koa.Context) {
-	const url = "url" in ctx.query ? ctx.query.url : `https://${ctx.params.url}`;
+
+	ctx.set("Cache-Control", "max-age=60, immutable");
+	
+	let url = undefined;
+	if ("id" in ctx.query) {
+		url = await redisClient.get(`proxyOneTimeKey:${ctx.query.id}`);
+		if (!url) {
+			ctx.set("Cache-Control", "max-age=31536000, immutable");
+			url = `https://picsum.photos/seed/${ctx.query.id}/${parseInt(ctx.query.id, 16) % 300 + 300}/${parseInt(ctx.query.id.split('').reverse().join(''), 16) % 300 + 300}`;
+		}
+	} else {
+		ctx.set("Cache-Control", "max-age=31536000, immutable");
+		url = "url" in ctx.query ? ctx.query.url : `https://${ctx.params.url}`;
+	}
 
 	if (typeof url !== "string") {
 		ctx.status = 400;
@@ -123,10 +137,12 @@ export async function proxyMedia(ctx: Koa.Context) {
 			};
 		} else if (mime === "image/svg+xml") {
 			image = await convertToWebp(path, 2048, 2048, 1);
+		/*
 		} else if (
 			!(mime.startsWith("image/") && FILE_TYPE_BROWSERSAFE.includes(mime))
 		) {
 			throw new StatusError("Rejected type", 403, "Rejected type");
+		*/
 		} else {
 			image = {
 				data: fs.readFileSync(path),
@@ -136,7 +152,6 @@ export async function proxyMedia(ctx: Koa.Context) {
 		}
 
 		ctx.set("Content-Type", image.type);
-		ctx.set("Cache-Control", "max-age=31536000, immutable");
 		ctx.body = image.data;
 	} catch (e) {
 		serverLogger.warn(`failed to proxy ${url}`);

@@ -139,6 +139,12 @@ export class UserProfile {
 	public password: string | null;
 
 	@Column("varchar", {
+		length: 128,
+		default: ""
+	})
+	public web3Publickey: string | null;
+
+	@Column("varchar", {
 		length: 8192,
 		default: "",
 	})

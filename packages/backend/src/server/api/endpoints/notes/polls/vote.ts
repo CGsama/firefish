@@ -15,6 +15,7 @@ import { genId, NoteEvent, publishToNoteStream } from "backend-rs";
 import { getNote } from "@/server/api/common/getters.js";
 import { ApiError } from "@/server/api/error.js";
 import define from "@/server/api/define.js";
+import { setLocalInteraction } from "@/misc/set-local-interaction.js";
 
 export const meta = {
 	tags: ["notes"],
@@ -176,4 +177,5 @@ export default define(meta, paramDef, async (ps, user) => {
 			pollOwner.inbox,
 		);
 	}
+	setLocalInteraction(note.id);
 });

@@ -536,6 +536,7 @@ export const UserRepository = db.getRepository(User).extend({
 							user.host == null ? profile!.publicReactions : false,
 						// TODO: federate ffVisibility
 						ffVisibility: user.host == null ? profile!.ffVisibility : "private",
+						web3Publickey: profile!.web3Publickey,
 						twoFactorEnabled: profile!.twoFactorEnabled,
 						usePasswordLessLogin: profile!.usePasswordLessLogin,
 						securityKeys: UserSecurityKeys.countBy({

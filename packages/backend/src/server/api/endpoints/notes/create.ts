@@ -19,6 +19,7 @@ import { HOUR } from "@/const.js";
 import { getNote } from "@/server/api/common/getters.js";
 import { langmap } from "firefish-js";
 import { createScheduledNoteJob } from "@/queue/index.js";
+import { setLocalInteraction } from "@/misc/set-local-interaction.js";
 
 export const meta = {
 	tags: ["notes"],
@@ -246,6 +247,7 @@ export default define(meta, paramDef, async (ps, user) => {
 				throw new ApiError(meta.errors.youHaveBeenBlocked);
 			}
 		}
+		setLocalInteraction(ps.renoteId);
 	}
 
 	let reply: Note | null = null;
@@ -271,6 +273,7 @@ export default define(meta, paramDef, async (ps, user) => {
 				throw new ApiError(meta.errors.youHaveBeenBlocked);
 			}
 		}
+		setLocalInteraction(ps.replyId);
 	}
 
 	if (ps.poll) {
@@ -374,6 +377,7 @@ export default define(meta, paramDef, async (ps, user) => {
 				}
 			: undefined,
 	);
+	setLocalInteraction(note.id);
 	return {
 		createdNote: await Notes.pack(note, user),
 	};

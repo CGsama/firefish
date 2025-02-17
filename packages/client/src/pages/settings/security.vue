@@ -7,6 +7,11 @@
 			}}</MkButton>
 		</FormSection>
 
+		<FormSection>
+			<template #label>Web3 Publickey</template>
+			<MkButton primary @click="changePubkey()">Change web3Publickey</MkButton>
+		</FormSection> 
+
 		<X2fa />
 
 		<FormSection>
@@ -64,11 +69,44 @@ import * as os from "@/os";
 import { i18n } from "@/i18n";
 import { definePageMetadata } from "@/scripts/page-metadata";
 import icon from "@/scripts/icon";
+import { me } from "@/me";
 
 const pagination = {
 	endpoint: "i/signin-history" as const,
 	limit: 5,
 };
+
+async function changePubkey() {
+	const { canceled: canceled1, result: currentPassword } = await os.inputText(
+		{
+			title: i18n.ts.currentPassword,
+			type: "password",
+			autocomplete: "current-password",
+		},
+	);
+	if (canceled1) return;
+
+	let metamaskPubkey = undefined;
+
+	try{
+		let web3 = new Web3(window.ethereum);
+		let accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+		metamaskPubkey = accounts[0];
+	}catch(e){
+		console.log("no metamask");
+	}
+
+	const { canceled: canceled2, result: web3Publickey } = await os.inputText({
+		title: "Web3 Publickey",
+		default: metamaskPubkey || me.web3Publickey,
+	});
+	if (canceled2) return;
+
+	os.apiWithDialog("i/web3-publickey", {
+		password: currentPassword,
+		value: web3Publickey,
+	});
+}
 
 async function change() {
 	const { canceled: canceled1, result: currentPassword } = await os.inputText({

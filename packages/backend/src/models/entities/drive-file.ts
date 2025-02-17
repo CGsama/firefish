@@ -232,5 +232,10 @@ export class DriveFile {
 	})
 	@JoinColumn()
 	public folder: Relation<DriveFolder | null>;
+
+	@Column("boolean", {
+		default: false,
+	})
+	public isInteractedByLocalUser: boolean;
 	//#endregion Relations
 }

@@ -2,6 +2,7 @@ import createReaction from "@/services/note/reaction/create.js";
 import define from "@/server/api/define.js";
 import { getNote } from "@/server/api/common/getters.js";
 import { ApiError } from "@/server/api/error.js";
+import { setLocalInteraction } from "@/misc/set-local-interaction.js";
 
 export const meta = {
 	tags: ["reactions", "notes"],
@@ -60,5 +61,6 @@ export default define(meta, paramDef, async (ps, user) => {
 			throw new ApiError(meta.errors.youHaveBeenBlocked);
 		throw e;
 	});
+	setLocalInteraction(ps.noteId);
 	return;
 });

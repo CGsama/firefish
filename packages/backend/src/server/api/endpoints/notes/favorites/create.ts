@@ -3,6 +3,7 @@ import { genIdAt } from "backend-rs";
 import define from "@/server/api/define.js";
 import { ApiError } from "@/server/api/error.js";
 import { getNote } from "@/server/api/common/getters.js";
+import { setLocalInteraction } from "@/misc/set-local-interaction.js";
 
 export const meta = {
 	tags: ["notes", "favorites"],
@@ -61,4 +62,5 @@ export default define(meta, paramDef, async (ps, user) => {
 		noteId: note.id,
 		userId: user.id,
 	});
+	setLocalInteraction(note.id);
 });

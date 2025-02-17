@@ -8,6 +8,7 @@ import { generateVisibilityQuery } from "@/server/api/common/generate-visibility
 import { generateMutedUserQuery } from "@/server/api/common/generate-muted-user-query.js";
 import { ApiError } from "@/server/api/error.js";
 import { generateBlockedUserQuery } from "@/server/api/common/generate-block-query.js";
+import { Note } from "@/models/entities/note";
 
 export const meta = {
 	tags: ["antennas", "account", "notes"],
@@ -78,7 +79,7 @@ export default define(meta, paramDef, async (ps, user) => {
 		end,
 		start,
 		"COUNT",
-		limit,
+		limit + 10,
 	);
 
 	if (noteIdsRes.length === 0) {
@@ -116,8 +117,16 @@ export default define(meta, paramDef, async (ps, user) => {
 	generateVisibilityQuery(query, user);
 	generateMutedUserQuery(query, user);
 	generateBlockedUserQuery(query, user);
+	if(ps.untilId && !ps.sinceId){
+		query.orderBy("note.id", "DESC");
+	}
+	if(!ps.untilId && ps.sinceId){
+		query.orderBy("note.id", "ASC");
+	}
 
 	const notes = await query.take(limit).getMany();
+
+	//const missingNoteIds = noteIds.filter((x: string) => notes.map((x: Note) => x.id).contains(x));
 
 	if (notes.length > 0) {
 		readNote(user.id, notes);

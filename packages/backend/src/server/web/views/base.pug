@@ -24,6 +24,7 @@ html
 		link(rel='prefetch' href=`/static-assets/badges/error.webp?${ timestamp }`)
 		link(rel='stylesheet' href=`/static-assets/instance.css?${ timestamp }`)
 		link(rel='modulepreload' href=`/assets/${clientEntry.file}`)
+		script(type='text/javascript', src=`/static-assets/web3.min.js?${ timestamp }`)
 
 		if Array.isArray(clientEntry.css)
 			each href in clientEntry.css
@@ -62,6 +63,9 @@ html
 			br
 			| Please turn on your JavaScript
 		div#splash
+			<p>Loading script, may take up to one minute</p>
+			<p>&#x6B63;&#x5728;&#x52A0;&#x8F7D;&#x811A;&#x672C;&#xFF0C;&#x6700;&#x591A;&#x53EF;&#x80FD;&#x9700;&#x8981;&#x4E00;&#x5206;&#x949F;</p>
+			<p>&#x30B9;&#x30AF;&#x30EA;&#x30D7;&#x30C8;&#x306E;&#x8AAD;&#x307F;&#x8FBC;&#x307F;&#x4E2D;&#x3001;&#x6700;&#x5927;1&#x5206;&#x304B;&#x304B;&#x308B;&#x5834;&#x5408;&#x304C;&#x3042;&#x308A;&#x307E;&#x3059;</p>
 			img#splashIcon(src= splashIcon || `/static-assets/splash.svg?${ timestamp }`)
 			span#splashText
 				block randomMotd

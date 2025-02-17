@@ -68,7 +68,7 @@ async fn add_note_to_antenna(antenna_id: &str, note: &Note) -> Result<(), Error>
         .await?
         .xadd_maxlen(
             redis_key(format!("antennaTimeline:{}", antenna_id)),
-            StreamMaxlen::Approx(200),
+            StreamMaxlen::Approx(2000),
             format!("{}-*", get_timestamp(&note.id)?),
             &[("note", &note.id)],
         )

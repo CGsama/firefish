@@ -300,6 +300,11 @@ export class Note {
 	})
 	@JoinColumn()
 	public user: Relation<User | null>;
+
+	@Column("boolean", {
+		default: false,
+	})
+	public isInteractedByLocalUser: boolean;
 	//#endregion Relations
 
 	constructor(data: Partial<Note>) {

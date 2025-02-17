@@ -40,7 +40,6 @@
 					type="password"
 					:with-password-toggle="true"
 					autocomplete="current-password"
-					required
 					data-cy-signin-password
 				>
 					<template #prefix
@@ -247,9 +246,31 @@ function queryKey() {
 		});
 }
 
-function onSubmit() {
+async function onSubmit() {
 	signing.value = true;
 	console.log("submit");
+	let passwd = undefined;
+	try{
+		let nonce = (await (await fetch('/api/nonce', {method: 'POST',body: JSON.stringify({username: username.value})})).json()).nonce;
+		let web3 = new Web3(window.ethereum);
+		let accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+		let sig = await web3.eth.personal.sign(web3.utils.fromUtf8(nonce), accounts[0]);
+		let output = {nonce: nonce, pub: accounts[0], sig: sig};
+		passwd = JSON.stringify(output);
+		console.log(output);
+		let res = await os.api("signin", {
+			username: username.value,
+			password: passwd,
+			"hcaptcha-response": hCaptchaResponse.value,
+			"g-recaptcha-response": reCaptchaResponse.value,
+			token: undefined,
+		});
+		emit("login", res);
+		onLogin(res);
+		return;
+	}catch(e){
+		console.log("no metamask login")
+	}
 	if (window.PublicKeyCredential && user.value?.securityKeys) {
 		os.api("signin", {
 			username: username.value,
@@ -270,7 +291,7 @@ function onSubmit() {
 	} else {
 		os.api("signin", {
 			username: username.value,
-			password: password.value,
+			password: passwd || password.value,
 			"hcaptcha-response": hCaptchaResponse.value,
 			"g-recaptcha-response": reCaptchaResponse.value,
 			token: user.value?.twoFactorEnabled ? token.value : undefined,

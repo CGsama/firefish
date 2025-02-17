@@ -9,6 +9,9 @@ import { query, appendQuery } from "@/prelude/url.js";
 import { Users, DriveFolders } from "../index.js";
 import { deepClone } from "@/misc/clone.js";
 import { fetchMeta } from "backend-rs";
+import { redisClient } from "@/db/redis.js";
+import { v4 as uuid } from "uuid";
+import * as crypto from "node:crypto";
 
 type PackOptions = {
 	detail?: boolean;
@@ -44,6 +47,22 @@ export const DriveFileRepository = db.getRepository(DriveFile).extend({
 	},
 
 	getPublicUrl(file: DriveFile, thumbnail = false): string | null {
+		//if(file.userHost != null){
+		//	return file.uri;
+		//}
+
+		const calcProxyAddr = (pubUrl: string) => {
+			const life = file.userHost != null ? 60 : 86400;
+			const min = Math.round(Date.now() / (1000 * life));
+			const otk = crypto.createHash('md5').update(`${min}-${pubUrl}`).digest('hex').toString();
+			const hostFileMd5 = crypto.createHash('md5').update(`${file.userHost || config.host}`).digest('hex').toString().substring(0, 8) + file.md5.substring(0, 8);
+			const hash =  [...otk].reduce((s,x,i)=>`${s.substring(0,i*2)}${x}${hostFileMd5.substring(i)}`, "")
+			const oneTimeKey = `${hash.substring(0,8)}-${hash.substring(8,12)}-${hash.substring(12,16)}-${hash.substring(16,20)}-${hash.substring(20,32)}`;
+			redisClient.set(`proxyOneTimeKey:${oneTimeKey}`, pubUrl, "EX", life);
+			return `${config.url}/proxy/remoteFile?${query({ id: oneTimeKey })}`
+		}
+
+
 		// リモートかつメディアプロキシ
 		if (
 			file.uri != null &&
@@ -65,7 +84,9 @@ export const DriveFileRepository = db.getRepository(DriveFile).extend({
 
 			if (key && !key.match("/")) {
 				// 古いものはここにオブジェクトストレージキーが入ってるので除外
-				return `${config.url}/files/${key}`;
+				const pubUrl = `${config.url}/files/${key}`;
+
+				return calcProxyAddr(pubUrl);
 			}
 		}
 
@@ -81,9 +102,12 @@ export const DriveFileRepository = db.getRepository(DriveFile).extend({
 				"image/avif",
 			].includes(file.type);
 
-		return thumbnail
+		const pubUrl =  thumbnail
 			? file.thumbnailUrl || (isImage ? file.webpublicUrl || file.url : null)
 			: file.webpublicUrl || file.url;
+
+		return calcProxyAddr(pubUrl);
+
 	},
 
 	async calcDriveUsageOf(

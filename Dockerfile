@@ -11,6 +11,7 @@ RUN curl --proto '=https' --tlsv1.2 --silent --show-error --fail https://sh.rust
 ENV PATH="/root/.cargo/bin:${PATH}"
 
 # Configure pnpm
+RUN npm install -g corepack@latest
 RUN corepack enable && corepack prepare pnpm@latest --activate
 
 # Build
@@ -44,6 +45,7 @@ COPY --from=build /firefish/packages/backend/assets/instance.css /firefish/packa
 COPY --from=build /firefish/packages/backend-rs/built /firefish/packages/backend-rs/built
 COPY --from=build /firefish/packages/firefish-js/built /firefish/packages/firefish-js/built
 
+RUN npm install -g corepack@latest
 RUN corepack enable && corepack prepare pnpm@latest --activate
 ENV NODE_ENV=production
 VOLUME "/firefish/files"

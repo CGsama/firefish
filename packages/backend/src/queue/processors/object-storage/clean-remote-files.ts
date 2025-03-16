@@ -17,6 +17,7 @@ export default async function cleanRemoteFiles(
 	let cursor: any = null;
 
 	while (true) {
+		logger.info(`Deleting cached remote files... ${deletedCount}`);
 		const files = await DriveFiles.find({
 			where: {
 				userHost: Not(IsNull()),
